@@ -3,29 +3,26 @@ require 'hardware'
 
 class Mongodb <Formula
   homepage 'http://www.mongodb.org/'
-  head 'git://github.com/mongodb/mongo.git'
-  url 'http://downloads.mongodb.org/src/mongodb-src-r1.6.5.tar.gz'
-  md5 '99f1c4c256be1611da6068aea30f9a30'
 
-  depends_on 'scons' => :build
-  depends_on 'boost'
-  if ARGV.include? '--usev8'
-    depends_on 'v8'
+  if Hardware.is_64_bit? and not ARGV.include? '--32bit'
+    url 'http://fastdl.mongodb.org/osx/mongodb-osx-x86_64-1.6.5.tgz'
+    md5 'f3438db5a5bd3ac4571616f3d19caf00'
+    version '1.6.5-x86_64'
   else
-    depends_on 'spidermonkey'
+    url 'http://fastdl.mongodb.org/osx/mongodb-osx-i386-1.6.5.tgz'
+    md5 '064c9c68752968875e4ccaf8801ef031'
+    version '1.6.5-i386'
   end
 
+  skip_clean :all
+
   def options
-    [['--asio', 'Use Asynchronous IO (NOT READY YET).'],
-     ['--usev8', 'Use v8 for javascript.']]
+    [['--32bit', 'Install the 32-bit version.']]
   end
 
   def install
-    args = ["--prefix=#{prefix}"]
-    args << "--usev8" if ARGV.include? '--usev8'
-    args << "--asio" if ARGV.include? '--asio'
-
-    system "scons", "install", *args
+    # Copy the prebuilt binaries to prefix
+    prefix.install Dir['*']
 
     # Create the data and log directories under /var
     (var+'mongodb').mkpath
